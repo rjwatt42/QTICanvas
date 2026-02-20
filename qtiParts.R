@@ -1,0 +1,305 @@
+library(stringr)
+
+qti_header<-function(qi,qtype,answer_idents,item_ident) {
+  header=paste0(
+    '        <itemmetadata>',
+    '          <qtimetadata>',
+    '            <qtimetadatafield>',
+    '              <fieldlabel>question_type</fieldlabel>',
+    '              <fieldentry>', qtype, '</fieldentry>',
+    '            </qtimetadatafield>',
+    '            <qtimetadatafield>',
+    '              <fieldlabel>points_possible</fieldlabel>',
+    '              <fieldentry>1.0</fieldentry>',
+    '            </qtimetadatafield>',
+    '            <qtimetadatafield>',
+    '              <fieldlabel>original_answer_ids</fieldlabel>',
+    '              <fieldentry>', paste0(format(answer_idents),collapse=','), '</fieldentry>',
+    '            </qtimetadatafield>',
+    '            <qtimetadatafield>',
+    '              <fieldlabel>assessment_question_identifierref</fieldlabel>',
+    '              <fieldentry>', item_ident, 'b', format(qi), '</fieldentry>',
+    '            </qtimetadatafield>',
+    '          </qtimetadata>',
+    '        </itemmetadata>'
+  )
+  return(header)
+}
+
+qti_scoring<-function(maxvalue,keywords,answer_correct_idents) {
+  scoring=paste0(
+    '        <resprocessing>',
+    '          <outcomes>',
+    '            <decvar maxvalue="', maxvalue, '" minvalue="0" varname="SCORE" vartype="Decimal"/>',
+    '          </outcomes>'
+  )
+  for (j in 1:length(keywords)) {
+    scoring=paste0(scoring, 
+                   paste0(
+                     '          <respcondition continue="No">',
+                     '            <conditionvar>',
+                     '              <varequal respident="response_', keywords[j], '">', format(answer_correct_idents[j]), '</varequal>',
+                     '            </conditionvar>',
+                     '            <setvar action="Add" varname="SCORE">1</setvar>',
+                     '          </respcondition>'
+                   )
+    );
+  }
+  scoring=paste0(scoring,'        </resprocessing>')
+  
+  return(scoring)
+}
+
+qti_presentation<-function(question_qti,answers_qti) {
+  presentation=paste0(
+    '<presentation>',
+    '<material>',
+    '<mattext texttype="text/html">',
+    '<div>',
+    question_qti,
+    '</div>',
+    '</mattext>',
+    '</material>'
+  )
+  presentation<-paste0(presentation,
+    paste0(answers_qti,collapse='')
+  )
+  presentation=paste0(presentation,
+    '</presentation>'
+  )
+  return(presentation)
+}
+
+
+
+make_question_item<-function(question,qi,item_ident) {
+  
+  question_qti=paste0('<p>',question$questionText, '</p>')
+  
+  nq=length(question$questionAnswers)
+  n_choices=1+sum(unlist(lapply(question$questionAnswers,length)))
+  answer_idents=1000+qi*10+(1:n_choices)
+  
+  keywords=str_extract_all(question$questionText,'\\[[a-zA-Z0-9_]*\\]')
+  keywords=substr(keywords[[1]],rep(2,4),sapply(keywords[[1]],nchar)-1)
+  
+  nc=1
+  answers_qti=c()
+  answer_correct_idents<-rep('',nq)
+  for (j in 1:nq) {
+    this_answer_qti= paste0('<response_lid ident="response_', keywords[j], '">')
+    this_answer_qti=paste0(this_answer_qti,
+                           '<material>',
+                           '<mattext>', keywords[j], '</mattext>',
+                           '</material>'
+    )
+    this_answer_qti=paste0(this_answer_qti,'<render_choice>')
+    
+    this_answer_qti=paste0(
+      this_answer_qti,
+      '<response_label ident="', format(answer_idents[nc]), '">',
+      '<material>',
+      '<mattext texttype="text/plain">', question$questionAnswers[[j]], '</mattext>',
+      '</material>',
+      '</response_label>'
+    )
+    answer_correct_idents[j]=answer_idents[nc]
+    nc<-nc+1
+    
+    for (i in 1:length(question$questionFoils[[j]])) {
+      this_answer_qti=paste0(
+        this_answer_qti,
+        '<response_label ident="', format(answer_idents[nc]), '">',
+        '<material>',
+        '<mattext texttype="text/plain">', question$questionFoils[[j]][i], '</mattext>',
+        '</material>',
+        '</response_label>'
+      )
+      nc=nc+1;
+    }
+    this_answer_qti=paste0(
+      this_answer_qti,'</render_choice>','</response_lid>'
+    )
+    answers_qti=c(answers_qti,this_answer_qti)
+  }
+  
+  header=qti_header(qi,question$questionType,answer_idents,item_ident)
+  presentation=qti_presentation(question_qti,answers_qti)
+  scoring=qti_scoring(nq,keywords,answer_correct_idents)
+  
+  qti_item=paste0(
+    paste0('      <item ident="', item_ident, 'a', format(qi), '" title="Q', format(qi), '">'),
+    header,
+    paste0(presentation,collapse=''),
+    scoring,
+    '      </item>'
+  )
+  
+  return(qti_item)
+}
+
+make_questions<-function(quiz) {
+  
+  group_questions_start=paste0(
+    '      <section ident="', quiz$title, 'G" title="GroupQuestions', quiz$title, '" >',
+    '        <selection_ordering>',
+    '          <selection>',
+    '            <selection_number>', format(quiz$questions2answer), '</selection_number>',
+    '            <selection_extension>',
+    '              <points_per_item>1.0</points_per_item>',
+    '            </selection_extension>',
+    '          </selection>',
+    '        </selection_ordering>'
+  )
+  group_questions_end=paste0(
+    '      </section>'
+  )
+  
+  n_questions<-length(quiz$questions)
+  group_questions_body=''
+  for (qi in 1:n_questions) {
+    item_ident=paste0('g',format(qi))
+    qti_item=make_question_item(quiz$questions[[qi]],qi,item_ident)
+    group_questions_body=paste0(group_questions_body,qti_item)
+  }
+  
+  group_questions<-paste0(
+    group_questions_start,
+    group_questions_body,
+    group_questions_end
+  )
+  
+  return(group_questions)
+}
+
+make_assessment<-function(quiz) {
+  
+  assessment_start=paste0(
+    '  <assessment ident="', quiz$title, '" title="', quiz$title, '">',
+    '    <qtimetadata>',
+    '      <qtimetadatafield>',
+    '        <fieldlabel>cc_maxattempts</fieldlabel>',
+    '        <fieldentry>1</fieldentry>',
+    '      </qtimetadatafield>',
+    '    </qtimetadata>',
+    '    <section ident="root_section">'
+  )
+  assessment_end=paste0(
+    '</section>',
+    '  </assessment>'
+  )
+  
+  assessment<-paste0(
+    assessment_start,
+    make_questions(quiz),
+    assessment_end
+  )
+  
+  qti_start<-paste0(
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/xsd/ims_qtiasiv1p2p1.xsd">'
+  )
+  
+  qti_end<-    '</questestinterop>'
+  
+  qti<-paste0(
+    qti_start,
+    assessment,
+    qti_end
+  )
+  
+  return(qti)
+}
+
+make_meta<-function(quiz) {
+  qti_meta=paste0(
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<quiz identifier="', quiz$title, '" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 https://canvas.instructure.com/xsd/cccv1p0.xsd">',
+    '  <title>', quiz$title, '</title>',
+    '  <description></description>',
+    '  <shuffle_answers>true</shuffle_answers>',
+    '  <scoring_policy>keep_highest</scoring_policy>',
+    '  <hide_results></hide_results>',
+    '  <quiz_type>assignment</quiz_type>',
+    '  <show_correct_answers>false</show_correct_answers>',
+    '  <one_question_at_a_time>true</one_question_at_a_time>',
+    '  <cant_go_back>false</cant_go_back>',
+    '  <one_time_results>false</one_time_results>',
+    '  <show_correct_answers_last_attempt>false</show_correct_answers_last_attempt>',
+    '</quiz>'
+  )
+  return(qti_meta)
+}
+
+make_manifest<-function(quiz) {
+  files<-''
+  for (i in 1:length(quiz$questions)) 
+    files<-paste0(files,paste0('<resource ',
+                               'identifier="',quiz$title,format(i),'"',' type="webcontent" ',
+                               'href="web_resources/',quiz$questions[[i]]$dataLink,'"',
+                               '>',
+                               '<file href="web_resources/', quiz$questions[[i]]$dataLink, '"/></resource>'))
+
+  manifest=paste0(
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<manifest identifier="MANIFEST-', quiz$title, '" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:imsmd="http://www.imsglobal.org/xsd/imsmd_v1p2" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1 http://www.imsglobal.org/xsd/imscp_v1p1.xsd http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource http://www.imsglobal.org/profile/cc/ccv1p1/LOM/ccv1p1_lomresource_v1p0.xsd http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p2.xsd">',
+    '	<metadata>',
+    '		<schema>IMS Content</schema>',
+    '		<schemaversion>1.1.3</schemaversion>',
+    '		<imsmd:lom>',
+    '			<imsmd:general>',
+    '				<imsmd:title>',
+    '					<imsmd:langstring xml:lang="en-US"/>',
+    '				</imsmd:title>',
+    '			</imsmd:general>',
+    '		</imsmd:lom>',
+    '	</metadata>',
+    '	<organizations/>',
+    '	<resources>',
+    '		<resource href="', quiz$title, '/', quiz$title, '.xml" identifier="', quiz$title, '" type="imsqti_xmlv1p2">',
+    '			<file href="', quiz$title, '/', quiz$title, '.xml"/>',
+    '      <dependency identifierref="RESOURCE2"/>',
+    '		</resource>',
+    '       <resource href="', quiz$title, '/', 'assessment_meta.xml" identifier="RESOURCE2" type="associatedcontent/imscc_xmlv1p1/learning-application-resource">',
+    '           <file href="', quiz$title, '/', 'assessment_meta.xml"/>',
+    '		</resource>',
+    files,
+    '	</resources>',
+    '</manifest>'
+  )
+  
+  return(manifest)  
+}
+
+qti_build<-function(quiz) {
+  folder<-paste0('./',quiz$title,'/',quiz$title,'/')
+  
+  qti<-make_assessment(quiz)
+  folder<-paste0('./',quiz$title,'/',quiz$title,'/')
+  filename<-paste0(quiz$title,'.xml')
+  file1<-file(paste0(folder,filename))
+  write(qti,file1)
+  close(file1)
+  # write to paste0(folder,filename)
+  print(paste0(folder,filename))
+  
+  qti_meta<-make_meta(quiz)
+  folder<-paste0('./',quiz$title,'/',quiz$title,'/')
+  filename<-paste0('assessment_meta.xml')
+  file1<-file(paste0(folder,filename))
+  write(qti_meta,file1)
+  close(file1)
+  # write to paste0(folder,filename)
+  print(paste0(folder,filename))
+  
+  qti_manifest<-make_manifest(quiz)
+  folder<-paste0('./',quiz$title,'/')
+  filename<-paste0('imsmanifest.xml')
+  file1<-file(paste0(folder,filename))
+  write(qti_manifest,file1)
+  close(file1)
+  # write to paste0(folder,filename)
+  print(paste0(folder,filename))
+  
+  
+}
