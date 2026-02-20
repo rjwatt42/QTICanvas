@@ -1,5 +1,7 @@
 library(BrawPackage)
 
+  setDesign(sN=100)
+  
   hypothesisAll<-array(list(),4)
   hypothesisAll[[1]]<-makeHypothesis()
   hypothesisAll[[2]]<-makeHypothesis()
@@ -7,10 +9,8 @@ library(BrawPackage)
   hypothesisAll[[4]]<-makeHypothesis()
   
   questionText<-paste0(
-    'Download the data file from: ',
-    '**datafile**',
-    'Analyse it to find the APA statement:',
-    '[test]([df])=[testval], p=[pval]'
+    'Download the data file from: **datafile**',
+    'Analyse it to find the APA statement: [test]([df])=[testval], p=[pval]'
   )
   
   makeAssessment(title="Online Assessment test2",
