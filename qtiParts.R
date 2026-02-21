@@ -76,42 +76,46 @@ make_question_item<-function(question,qi,item_ident) {
   
   question_qti=paste0('<p>',question$questionText, '</p>')
   
-  nq=length(question$questionAnswers)
-  n_choices=1+sum(unlist(lapply(question$questionAnswers,length)))
-  answer_idents=1000+qi*10+(1:n_choices)
-  
   keywords=str_extract_all(question$questionText,'\\[[a-zA-Z0-9_]*\\]')
   keywords=substr(keywords[[1]],rep(2,4),sapply(keywords[[1]],nchar)-1)
   
+  nkeys=length(keywords)
+  nchoices=1+length(question$questionFoils[[1]])
+  answer_idents=10000+qi*100+(1:nchoices*nkeys)
+
   nc=1
   answers_qti=c()
-  answer_correct_idents<-rep('',nq)
-  for (j in 1:nq) {
-    this_answer_qti= paste0('<response_lid ident="response_', keywords[j], '">')
+  answer_correct_idents<-rep('',nkeys)
+  for (key in 1:nkeys) {
+    # the keyword (remove optional underscores)
+    thiskey<-gsub('_','',keywords[key])
+    this_answer_qti= paste0('<response_lid ident="response_', thiskey, '">')
     this_answer_qti=paste0(this_answer_qti,
                            '<material>',
-                           '<mattext>', keywords[j], '</mattext>',
+                           '<mattext>', thiskey, '</mattext>',
                            '</material>'
     )
-    this_answer_qti=paste0(this_answer_qti,'<render_choice>')
     
+    # the choices
+    this_answer_qti=paste0(this_answer_qti,'<render_choice>')
+    # correct answer first
     this_answer_qti=paste0(
       this_answer_qti,
       '<response_label ident="', format(answer_idents[nc]), '">',
       '<material>',
-      '<mattext texttype="text/plain">', question$questionAnswers[[j]], '</mattext>',
+      '<mattext texttype="text/plain">', question$questionAnswers[[thiskey]], '</mattext>',
       '</material>',
       '</response_label>'
     )
     answer_correct_idents[j]=answer_idents[nc]
     nc<-nc+1
-    
-    for (i in 1:length(question$questionFoils[[j]])) {
+    # then the wrong answers
+    for (i in 1:length(question$questionFoils[[thiskey]])) {
       this_answer_qti=paste0(
         this_answer_qti,
         '<response_label ident="', format(answer_idents[nc]), '">',
         '<material>',
-        '<mattext texttype="text/plain">', question$questionFoils[[j]][i], '</mattext>',
+        '<mattext texttype="text/plain">', question$questionFoils[[thiskey]][i], '</mattext>',
         '</material>',
         '</response_label>'
       )
@@ -125,7 +129,7 @@ make_question_item<-function(question,qi,item_ident) {
   
   header=qti_header(qi,question$questionType,answer_idents,item_ident)
   presentation=qti_presentation(question_qti,answers_qti)
-  scoring=qti_scoring(nq,keywords,answer_correct_idents)
+  scoring=qti_scoring(nkeys,keywords,answer_correct_idents)
   
   qti_item=paste0(
     paste0('      <item ident="', item_ident, 'a', format(qi), '" title="Q', format(qi), '">'),
