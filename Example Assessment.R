@@ -1,4 +1,7 @@
- BrawPackage::BrawOpts()
+library(BrawPackage)
+library(QTICanvas)
+
+BrawPackage::BrawOpts()
 
   hypothesisAll<-list(IV="?Int?CatN",
                       DV="?Int",
@@ -11,7 +14,7 @@
     'Analyse it to find the APA statement: [testname][df]=[testval], p=[pval]'
   )
 
-  makeAssessment(title="Test2",
+  QTICanvas::makeAssessment(title="Test2",
                  questionText=questionText,
                  n_questions=50,n_choices=4,
                  hypothesisAll=hypothesisAll)

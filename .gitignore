@@ -15,6 +15,9 @@ local/
 .~lock*
 extdata/.~lock*
 
+Test*/
+Test*.zip
+
 test*.R
 example*.R
 *.xlsx
