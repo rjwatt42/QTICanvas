@@ -1,3 +1,5 @@
+#' @import BrawPackage
+#' @import stringr
 
 chooseOne<-function(var) {
   use<-ceiling(runif(1)*length(var))

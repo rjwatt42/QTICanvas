@@ -75,7 +75,7 @@ make_question_item<-function(question,qi,item_ident) {
   
   question_qti=paste0('<p>',question$questionText, '</p>')
   
-  keywords=str_extract_all(question$questionText,'\\[[a-zA-Z0-9_]*\\]')
+  keywords=stringr::str_extract_all(question$questionText,'\\[[a-zA-Z0-9_]*\\]')
   keywords=substr(keywords[[1]],rep(2,4),sapply(keywords[[1]],nchar)-1)
   
   nkeys=length(keywords)

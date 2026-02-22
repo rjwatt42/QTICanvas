@@ -1,4 +1,4 @@
-
+ BrawPackage::BrawOpts()
 
   hypothesisAll<-list(IV="?Int?CatN",
                       DV="?Int",
