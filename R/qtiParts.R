@@ -1,4 +1,3 @@
-library(stringr)
 
 qti_header<-function(qi,qtype,answer_idents,item_ident) {
   header=c(

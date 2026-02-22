@@ -1,0 +1,10 @@
+Package: QTI_Canvas
+Type: Package
+Title: Generate data analysis quizzes for Canvas
+Version: 1.0.0.0
+Imports:
+    readxl,  
+    writexl,  
+    stringr
+Remotes: rjwatt42/BrawPackDevelopment
+RoxygenNote: 7.3.3

@@ -1,5 +1,3 @@
-library(BrawPackage)
-
 
 chooseOne<-function(var) {
   use<-ceiling(runif(1)*length(var))
@@ -20,6 +18,7 @@ formatP<-function(p,digits=3) {
   return(pstr)
 }
 
+#' @export
 makeAssessment<-function(title="Assessment",questionText=questionText,n_questions=50,n_choices=4,hypothesisAll=hypothesisAll) {
   quizTitle=title
   
@@ -76,6 +75,7 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
              "sOutliers"=design$sOutliers<-chooseBetween(hypothesisAll$sOutliers)
       )
     }
+    print(c(hypothesis$IV$type,hypothesis$DV$type))
     # make a sample
     sample<-doSingle(hypothesis=hypothesis,design=design)
     # save the sample to a data file

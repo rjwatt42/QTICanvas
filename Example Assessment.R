@@ -1,7 +1,7 @@
 
 
-  hypothesisAll<-list(IV="?",
-                      DV="?Interval",
+  hypothesisAll<-list(IV="?Int?CatN",
+                      DV="?Int",
                       rIV=c(0.4,-0.4),
                       sN=c(50,200)
   )
