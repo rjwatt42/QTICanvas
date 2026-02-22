@@ -1,4 +1,4 @@
-Package: QTI_Canvas
+Package: QTICanvas
 Type: Package
 Title: Generate data analysis quizzes for Canvas
 Version: 1.0.0.0
