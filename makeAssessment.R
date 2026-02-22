@@ -1,4 +1,14 @@
+library(BrawPackage)
+
+
 chooseOne<-function(var) {
+  use<-ceiling(runif(1)*length(var))
+  return(var[use])
+}
+chooseBetween<-function(var) {
+  var<-sort(var)
+  if (length(var)==1) return(var)
+  if (length(var)==2) return(runif(1,var[1],var[2]))
   use<-ceiling(runif(1)*length(var))
   return(var[use])
 }
@@ -56,20 +66,20 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
              "IV"=hypothesis$IV<-getVariable(chooseOne(hypothesisAll$IV)),
              "IV2"=hypothesis$IV2<-getVariable(chooseOne(hypothesisAll$IV2)),
              "DV"=hypothesis$DV<-getVariable(chooseOne(hypothesisAll$DV)),
-             "rIV"=hypothesis$effect$rIV<-chooseOne(hypothesisAll$rIV),
-             "rIV2"=hypothesis$effect$rIV2<-chooseOne(hypothesisAll$rIV2),
-             "rIVIV2"=hypothesis$effect$rIVIV2<-chooseOne(hypothesisAll$rIVIV2),
-             "rIVIV2DV"=hypothesis$effect$rIVIV2DV<-chooseOne(hypothesisAll$rIVIV2DV),
-             "sN"=design$sN<-chooseOne(hypothesisAll$sN),
+             "rIV"=hypothesis$effect$rIV<-chooseBetween(hypothesisAll$rIV),
+             "rIV2"=hypothesis$effect$rIV2<-chooseBetween(hypothesisAll$rIV2),
+             "rIVIV2"=hypothesis$effect$rIVIV2<-chooseBetween(hypothesisAll$rIVIV2),
+             "rIVIV2DV"=hypothesis$effect$rIVIV2DV<-chooseBetween(hypothesisAll$rIVIV2DV),
+             "sN"=design$sN<-chooseBetween(hypothesisAll$sN),
              "sIV1Use"=design$sIV1Use<-chooseOne(hypothesisAll$sIV1Use),
              "sIV2Use"=design$sIV2Use<-chooseOne(hypothesisAll$sIV2Use),
-             "sOutliers"=design$sOutliers<-chooseOne(hypothesisAll$sOutliers)
+             "sOutliers"=design$sOutliers<-chooseBetween(hypothesisAll$sOutliers)
       )
     }
     # make a sample
     sample<-doSingle(hypothesis=hypothesis,design=design)
     # save the sample to a data file
-    dataName<-paste0('Data3_', format(qi),'.xlsx')
+    dataName<-paste0('Data_', format(qi),'.xlsx')
     if (is.null(hypothesis$IV2)) {
       data<-data.frame(sample$participant,sample$iv,sample$dv)
       names(data)<-c("Participant",hypothesis$IV$name,hypothesis$DV$name)
@@ -77,13 +87,12 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
       data<-data.frame(sample$participant,sample$iv,sample$iv2,sample$dv)
       names(data)<-c("Participant",hypothesis$IV$name,hypothesis$IV2$name,hypothesis$DV$name)
     }
-    
     writexl::write_xlsx(data,
                         paste0(dataFolder,dataName))
+    if (sample$test_name=="t") sample$test_val<-abs(sample$test_val)
     
     # now set up the question
-    fileRoot<-'https://canvas.stir.ac.uk/courses/19281/file_contents/$IMS-CC-FILEBASE$/'
-    
+
     questionTextThis<-gsub('\\*\\*([a-zA-Z0-9_.]*)\\*\\*',
                        paste0(
                        '<a class="instructure_file_link instructure_scribd_file inline_disabled" ',
@@ -106,15 +115,17 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
       dvmean    = format(sample$dv.mn),
       dvsd    = format(sample$dv.sd),
       power    = format(sample$wFull),
-      n80      = format(sample$wFulln80),
+      n80      = format(sample$wFulln80)
     )
     
     df<-df_answers[ceiling(runif(n_choices-1,0,length(df_answers)))]
     for (i in 1:length(df)) {
       df[i]<-gsub('yy',ceiling(runif(1)*4),gsub('xx',ceiling(runif(1)*100),df[i]))
     }
+    testnames<-pracma::randperm(setdiff(type_answers,questionAnswers$testname))
+    
     questionFoils<-list(
-      testname=setdiff(type_answers,questionAnswers$test)[ceiling(runif(n_choices-1,0,length(df_answers)))],
+      testname=testnames[1:(n_choices-1)],
       df=df,
       testval=format(runif(n_choices-1,0,3),digits=3),
       pval=formatP(runif(n_choices-1,0,0.5),digits=3),
