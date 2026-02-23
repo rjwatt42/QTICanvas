@@ -47,10 +47,7 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
   df_answers=c('(xx)','(xx)','(yy,xx)','(yy,n=xx)')
   
   n1<-names(hypothesisAll)
-  nH<-n1[is.element(n1,names(braw.def$hypothesis))]
-  nE<-n1[is.element(n1,names(braw.def$hypothesis$effect))]
-  nD<-n1[is.element(n1,names(braw.def$design))]
-  
+
   if (is.null(hypothesisAll$rIV)) hypothesisAll$rIV<-0.3
   if (is.null(hypothesisAll$sN)) hypothesisAll$sN<-50
   
