@@ -6,11 +6,8 @@ chooseOne<-function(var) {
   return(var[use])
 }
 chooseBetween<-function(var) {
-  var<-sort(var)
-  if (length(var)==1) return(var)
-  if (length(var)==2) return(runif(1,var[1],var[2]))
-  use<-ceiling(runif(1)*length(var))
-  return(var[use])
+  if (is.list(var))  return(runif(1,var$min,var$max))
+  else return(chooseOne(var))
 }
 formatP<-function(p,digits=3) {
   pstr<-format(p,digits=digits)
@@ -77,7 +74,6 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
              "sOutliers"=design$sOutliers<-chooseBetween(hypothesisAll$sOutliers)
       )
     }
-    print(c(hypothesis$IV$type,hypothesis$DV$type))
     # make a sample
     sample<-doSingle(hypothesis=hypothesis,design=design)
     # save the sample to a data file
