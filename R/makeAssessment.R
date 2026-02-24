@@ -71,6 +71,15 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
              "sDataFormat"=design$sDataFormat<-chooseOne(hypothesisAll$sDataFormat),
              "sOutliers"=design$sOutliers<-chooseBetween(hypothesisAll$sOutliers)
       )
+      if (is.null(hypothesis$IV2))
+        while(hypothesis$DV$name==hypothesis$IV$name) 
+          hypothesis$DV<-getVariable(chooseOne(hypothesisAll$DV))
+      else {
+        while(hypothesis$IV$name==hypothesis$IV2$name) 
+          hypothesis$IV2<-getVariable(chooseOne(hypothesisAll$IV2))
+        while(hypothesis$DV$name==hypothesis$IV$name || hypothesis$DV$name==hypothesis$IV2$name) 
+          hypothesis$DV<-getVariable(chooseOne(hypothesisAll$DV))
+      }
     }
     # make a sample
     sample<-doSingle(hypothesis=hypothesis,design=design)
