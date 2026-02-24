@@ -73,14 +73,16 @@ qti_presentation<-function(question_qti,answers_qti) {
 
 make_question_item<-function(question,qi,item_ident) {
   
-  question_qti=paste0('<p>',question$questionText, '</p>')
+  # question_qti=paste0('<p>',question$questionText, '</p>')
+  question_qti=question$questionText
   
   keywords=stringr::str_extract_all(question$questionText,'\\[[a-zA-Z0-9_]*\\]')
   keywords=substr(keywords[[1]],rep(2,4),sapply(keywords[[1]],nchar)-1)
   
   nkeys=length(keywords)
-  nchoices=1+length(question$questionFoils[[1]])
-  answer_idents=10000+qi*100+(1:(nchoices*nkeys))
+  # nchoices=1+length(question$questionFoils[[1]])
+  nchoices<-sum(1+sapply(question$questionFoils[keywords],length))
+  answer_idents=10000+qi*100+(1:(nchoices))
 
   nc=1
   answers_qti=c()

@@ -68,6 +68,7 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
              "sN"=design$sN<-chooseBetween(hypothesisAll$sN),
              "sIV1Use"=design$sIV1Use<-chooseOne(hypothesisAll$sIV1Use),
              "sIV2Use"=design$sIV2Use<-chooseOne(hypothesisAll$sIV2Use),
+             "sDataFormat"=design$sDataFormat<-chooseOne(hypothesisAll$sDataFormat),
              "sOutliers"=design$sOutliers<-chooseBetween(hypothesisAll$sOutliers)
       )
     }
@@ -87,30 +88,49 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
     if (sample$test_name=="t") sample$test_val<-abs(sample$test_val)
     
     # now set up the question
-
-    questionTextThis<-gsub('\\*\\*([a-zA-Z0-9_.]*)\\*\\*',
+    questionTextThis<-questionText
+    questionTextThis<-gsub('\\*\\*IVname\\*\\*',hypothesis$IV$name,questionTextThis)
+    questionTextThis<-gsub('\\*\\*DVname\\*\\*',hypothesis$DV$name,questionTextThis)
+    questionTextThis<-gsub('\\*\\*IVcase1\\*\\*',hypothesis$IV$cases[1],questionTextThis)
+    questionTextThis<-gsub('\\*\\*IVcase2\\*\\*',hypothesis$IV$cases[2],questionTextThis)
+    questionTextThis<-gsub('\\*\\*IVcase3\\*\\*',hypothesis$IV$cases[3],questionTextThis)
+    questionTextThis<-gsub('\\*\\*DVcase1\\*\\*',hypothesis$DV$cases[1],questionTextThis)
+    questionTextThis<-gsub('\\*\\*DVcase2\\*\\*',hypothesis$DV$cases[2],questionTextThis)
+    questionTextThis<-gsub('\\*\\*DVcase3\\*\\*',hypothesis$DV$cases[3],questionTextThis)
+    questionTextThis<-gsub('\\*\\*datafile\\*\\*',
                        paste0(
                        '<a class="instructure_file_link instructure_scribd_file inline_disabled" ',
                        'title="Data" ',
                        'href="',dataLink,dataName,
                        '?canvas_=1&amp;amp;canvas_qs_wrap=1" target="_blank">',
-                       'here',
+                       'file=',dataName,
                        '</a> '),
-                       questionText)
+                       questionTextThis)
+    
     questionType<-'multiple_dropdowns_question'
     
     # here we get all possible answers
     questionAnswers<-list(
+      ivtype    = sample$hypothesis$IV$type,
+      dvtype    = sample$hypothesis$DV$type,
+      dvmean    = format(sample$dv.mn,digits=3),
+      dvsd      = format(sample$dv.sd,digits=3),
+      ivmean    = format(sample$iv.mn,digits=3),
+      ivsd      = format(sample$iv.sd,digits=3),
+      gp1mean   = format(mean(sample$dv[sample$iv==1]),digits=3),
+      gp1sd     = format(sd(sample$dv[sample$iv==1]),digits=3),
+      gp2mean   = format(mean(sample$dv[sample$iv==2]),digits=3),
+      gp2sd     = format(sd(sample$dv[sample$iv==2]),digits=3),
+      gp3mean   = format(mean(sample$dv[sample$iv==3]),digits=3),
+      gp3sd     = format(sd(sample$dv[sample$iv==3]),digits=3),
       testname = sample$test_name,
       df       = sample$df,
       testval  = format(sample$test_val,digits=3),
       pval     = formatP(sample$pIV,digits=3),
-      rval     = format(sample$rIV),
-      dval     = format(sample$rIV),
-      dvmean    = format(sample$dv.mn),
-      dvsd    = format(sample$dv.sd),
-      power    = format(sample$wFull),
-      n80      = format(sample$wFulln80)
+      rval     = format(sample$rIV,digits=3),
+      dval     = format(sample$rIV,digits=3),
+      power    = format(sample$wFull,digits=3),
+      n80      = format(sample$wFulln80,digits=3)
     )
     
     df<-df_answers[ceiling(runif(n_choices-1,0,length(df_answers)))]
@@ -120,14 +140,24 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
     testnames<-pracma::randperm(setdiff(type_answers,questionAnswers$testname))
     
     questionFoils<-list(
+      ivtype    = setdiff(c("Interval","Ordinal","Categorical"),questionAnswers$ivtype),
+      dvtype    = setdiff(c("Interval","Ordinal","Categorical"),questionAnswers$dvtype),
+      dvmean    = format(runif(n_choices-1,-2,2)*sample$hypothesis$DV$sd+sample$hypothesis$DV$mu,digits=3),
+      dvsd      = format(runif(n_choices-1,0,2)*sample$hypothesis$DV$sd,digits=3),
+      ivmean    = format(runif(n_choices-1,-2,2)*sample$hypothesis$IV$sd+sample$hypothesis$IV$mu,digits=3),
+      ivsd      = format(runif(n_choices-1,0,2)*sample$hypothesis$IV$sd,digits=3),
+      gp1mean    = format(runif(n_choices-1,-2,2)*sample$hypothesis$DV$sd+sample$hypothesis$DV$mu,digits=3),
+      gp1sd      = format(runif(n_choices-1,0,2)*sample$hypothesis$DV$sd,digits=3),
+      gp2mean    = format(runif(n_choices-1,-2,2)*sample$hypothesis$DV$sd+sample$hypothesis$DV$mu,digits=3),
+      gp2sd      = format(runif(n_choices-1,0,2)*sample$hypothesis$DV$sd,digits=3),
+      gp3mean    = format(runif(n_choices-1,-2,2)*sample$hypothesis$DV$sd+sample$hypothesis$DV$mu,digits=3),
+      gp3sd      = format(runif(n_choices-1,0,2)*sample$hypothesis$DV$sd,digits=3),
       testname=testnames[1:(n_choices-1)],
       df=df,
       testval=format(runif(n_choices-1,0,3),digits=3),
       pval=formatP(runif(n_choices-1,0,0.5),digits=3),
       rval=format(runif(n_choices-1,-0.8,0.8),digits=3),
       dval=format(runif(n_choices-1,-1.2,1.2),digits=3),
-      dvmean=format(sample$dv.mn+runif(n_choices-1,-2,2)*sample$dv.sd,digits=3),
-      dvsd=format(runif(n_choices-1,0.2,2)*sample$dv.sd,digits=3),
       power=format(runif(n_choices-1,0,0.95),digits=3),
       n80= format(runif(n_choices-1,10,200))
     )
