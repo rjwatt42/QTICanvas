@@ -103,7 +103,7 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
     questionTextThis<-gsub('\\*\\*datafile\\*\\*',
                        paste0(
                          'file=',
-                         '<a class="instructure_file_link instructure_scribd_file inline_disabled" ',
+                         '<a class="instructure_file_link instructure_scribd_file inline_disabled no_preview" ',
                          'title="Data" ',
                          'href="',dataLink,dataName,
                          '?canvas_=1&amp;amp;canvas_qs_wrap=1" target="_blank">',
