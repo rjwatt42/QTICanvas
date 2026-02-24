@@ -85,13 +85,7 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
     sample<-doSingle(hypothesis=hypothesis,design=design)
     # save the sample to a data file
     dataName<-paste0('Data_', format(qi),'.xlsx')
-    if (is.null(hypothesis$IV2)) {
-      data<-data.frame(sample$participant,sample$iv,sample$dv)
-      names(data)<-c("Participant",hypothesis$IV$name,hypothesis$DV$name)
-    } else {
-      data<-data.frame(sample$participant,sample$iv,sample$iv2,sample$dv)
-      names(data)<-c("Participant",hypothesis$IV$name,hypothesis$IV2$name,hypothesis$DV$name)
-    }
+    data<-prepareData4File(sample)
     writexl::write_xlsx(data,
                         paste0(dataFolder,dataName))
     if (sample$test_name=="t") sample$test_val<-abs(sample$test_val)
@@ -108,12 +102,13 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
     questionTextThis<-gsub('\\*\\*DVcase3\\*\\*',hypothesis$DV$cases[3],questionTextThis)
     questionTextThis<-gsub('\\*\\*datafile\\*\\*',
                        paste0(
-                       '<a class="instructure_file_link instructure_scribd_file inline_disabled" ',
-                       'title="Data" ',
-                       'href="',dataLink,dataName,
-                       '?canvas_=1&amp;amp;canvas_qs_wrap=1" target="_blank">',
-                       'file=',dataName,
-                       '</a> '),
+                         'file=',
+                         '<a class="instructure_file_link instructure_scribd_file inline_disabled" ',
+                         'title="Data" ',
+                         'href="',dataLink,dataName,
+                         '?canvas_=1&amp;amp;canvas_qs_wrap=1" target="_blank">',
+                         dataName,
+                         '</a> '),
                        questionTextThis)
     
     questionType<-'multiple_dropdowns_question'
