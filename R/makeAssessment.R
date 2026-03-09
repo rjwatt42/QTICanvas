@@ -134,7 +134,27 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
       rval     = format(sample$rIV,digits=3),
       dval     = format(sample$rIV,digits=3),
       power    = format(sample$wFull,digits=3),
-      n80      = format(sample$wFulln80,digits=3)
+      n80      = format(sample$wFulln80,digits=3),
+      F1      = format(sample$anova["iv1",3],digits=3),
+      F2      = format(sample$anova["iv2",3],digits=3),
+      F12      = format(sample$anova["iv1:iv2",3],digits=3),
+      FResid   = format(sample$anova["Residuals",3],digits=3),
+      DF1      = format(sample$anova["iv1",2],digits=3),
+      DF2      = format(sample$anova["iv2",2],digits=3),
+      DF12      = format(sample$anova["iv1:iv2",2],digits=3),
+      DFResid   = format(sample$anova["Residuals",2],digits=3),
+      Fp1      = format(sample$anova["iv1",4],digits=3),
+      Fp2      = format(sample$anova["iv2",4],digits=3),
+      Fp12      = format(sample$anova["iv1:iv2",4],digits=3),
+      Est1      = format(sample$model["iv1",1],digits=3),
+      Est2      = format(sample$model["iv2",1],digits=3),
+      Est12      = format(sample$model["iv1:iv2",1],digits=3),
+      t1      = format(sample$model["iv1",3],digits=3),
+      t2      = format(sample$model["iv2",3],digits=3),
+      t12      = format(sample$model["iv1:iv2",3],digits=3),
+      tp1      = format(sample$model["iv1",4],digits=3),
+      tp2      = format(sample$model["iv2",4],digits=3)
+      tp12      = format(sample$model["iv1:iv2",4],digits=3)
     )
     
     df<-df_answers[ceiling(runif(n_choices-1,0,length(df_answers)))]
@@ -163,7 +183,27 @@ makeAssessment<-function(title="Assessment",questionText=questionText,n_question
       rval=format(runif(n_choices-1,-0.8,0.8),digits=3),
       dval=format(runif(n_choices-1,-1.2,1.2),digits=3),
       power=format(runif(n_choices-1,0,0.95),digits=3),
-      n80= format(runif(n_choices-1,10,200))
+      n80= format(runif(n_choices-1,10,200)),
+      F1      = format(runif(n_choices-1,0,2)*questionAnswers$F1,digits=3),
+      F2      = format(runif(n_choices-1,0,2)*questionAnswers$F2,digits=3),
+      F12      = format(runif(n_choices-1,0,2)*questionAnswers$F12,digits=3),
+      FResid   = format(runif(n_choices-1,0,2)*questionAnswers$FResid,digits=3),
+      DF1      = format(setdiff(1:n_choices,questionAnswers$DF1),digits=3),
+      DF2      = format(setdiff(1:n_choices,questionAnswers$DF2),digits=3),
+      DF12      = format(setdiff(1:n_choices,questionAnswers$DF12),digits=3),
+      DFResid      = format(setdiff(1:n_choices,questionAnswers$DFResid),digits=3),
+      Fp1      = format(runif(n_choices-1,0,1),digits=3),
+      Fp2      = format(runif(n_choices-1,0,1),digits=3),
+      Fp12      = format(runif(n_choices-1,0,1),digits=3),
+      Est1      = format(runif(n_choices-1,0,2)*questionAnswers$Est1,digits=3),
+      Est2      = format(runif(n_choices-1,0,2)*questionAnswers$Est2,digits=3),
+      Est12      = format(runif(n_choices-1,0,2)*questionAnswers$Est12,digits=3),
+      t1      = format(runif(n_choices-1,0,2)*questionAnswers$t1,digits=3),
+      t2      = format(runif(n_choices-1,0,2)*questionAnswers$t2,digits=3),
+      t12      = format(runif(n_choices-1,0,2)*questionAnswers$t12,digits=3),
+      tp1      = format(runif(n_choices-1,0,1),digits=3),
+      tp2      = format(runif(n_choices-1,0,1),digits=3),
+      tp12      = format(runif(n_choices-1,0,1),digits=3)
     )
     
     question<-list(
